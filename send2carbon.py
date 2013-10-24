@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 # Copyright 2012 Cyrus Dasadia [cyrus -a-t- extremeunix.com]
 #
-# send2carbon.py can be used to send metrics to carbon server 
-# Example: 
+# send2carbon.py can be used to send metrics to carbon server
+# Example:
 #   send2carbon.py -H localhost -p 2003 -m localhost.foo.bar -v 234
-# 
+#
 # TODO:
-# - Add option of logging 
-# 
+# - Add option of logging
+#
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -23,7 +23,7 @@
 
 
 import sys
-import time
+from datetime import datetime
 try:
     from argparse import ArgumentParser
 except:
@@ -32,21 +32,22 @@ except:
 from socket import socket
 
 parser = ArgumentParser()
-parser.add_argument('-H','--host',help='Carbon server hostname',required=True,dest='carbon_server')
-parser.add_argument('-p','--port',help='Carbon server port',type=int,required=True,dest='carbon_server_port')
-parser.add_argument('-m','--metric',help='Metric name',required=True,dest='metric_name')
-parser.add_argument('-v','--value',help='Metric value',required=True,dest='metric_value')
+parser.add_argument('-H', '--host', help='Carbon server hostname', required=True, dest='carbon_server')
+parser.add_argument('-p', '--port', help='Carbon server port', type=int, required=True, dest='carbon_server_port')
+parser.add_argument('-m', '--metric', help='Metric name', required=True, dest='metric_name')
+parser.add_argument('-v', '--value', help='Metric value', required=True, dest='metric_value')
+parser.add_argument('-t', '--time', help='Unix Timestamp', required=False, dest='metric_time', default=datetime.utcnow().strftime('%s'))
 args = parser.parse_args()
 
 
-def send2carbon(carbon_server,carbon_server_port,metric_name,metric_value):
+def send2carbon(carbon_server, carbon_server_port, metric_name, metric_value, metric_time):
     sock = socket()
+    carbon_string = str("%s %s %d\n" % (metric_name, metric_value, int(metric_time)))
     try:
         sock.connect( (carbon_server,carbon_server_port) )
     except:
-        print "ERROR: Could not connect to carbon server %s on port %d\n" % (carbon_server,carbon_server_port)
+        print "ERROR: Could not connect to carbon server %s on port %d\n%s" % (carbon_server, carbon_server_port, carbon_string)
         sys.exit(1)
-    carbon_string = str("%s %s %d\n" % (metric_name, metric_value,  int(time.time())))
     try:
         sock.sendall(carbon_string)
     except:
@@ -54,5 +55,5 @@ def send2carbon(carbon_server,carbon_server_port,metric_name,metric_value):
         sys.exit(1)
 
 
-send2carbon(args.carbon_server,args.carbon_server_port,args.metric_name,args.metric_value)
+send2carbon(args.carbon_server, args.carbon_server_port, args.metric_name, args.metric_value, args.metric_time)
 
