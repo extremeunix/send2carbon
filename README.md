@@ -13,4 +13,5 @@ A script to send metrics to carbon
 
 # Example
 ./send2carbon.py -H 10.1.1.1 -p 2003 -m 'server1.apache.4xx' -v '200'
+
 ./send2carbon.py -H 10.1.1.1 -p 2003 -m 'server1.apache.4xx' -v '200' -t 1382582174
